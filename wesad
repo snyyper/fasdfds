@@ -1,113 +1,138 @@
 loadstring(game:HttpGet('https://raw.githubusercontent.com/snyyper/dasdas/main/dsd'))()
 
--- // Dependencies
-_G.PRED = 0.025
-local Aiming = loadstring(game:HttpGet("https://raw.githubusercontent.com/Ezucii/new/main/sourceeeeeeeeeeeeee.lua"))()
-Aiming.TeamCheck(false)
-Aiming.ShowFOV = false
-Aiming.FOV = 15.9
--- // Services
-local Workspace = game:GetService("Workspace")
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
+getgenv().Prediction =  (  .1239592  )   -- [ PREDICTION: Lower Prediction: Lower Ping | Higher Prediction: Higher Ping  ]
  
--- // Vars
-local LocalPlayer = Players.LocalPlayer
-local Mouse = LocalPlayer:GetMouse()
-local CurrentCamera = Workspace.CurrentCamera
+getgenv().FOV =  (  55  )   -- [ FOV RADIUS: Increases Or Decreases FOV Radius ]
  
-local DaHoodSettings = {
-    SilentAim = true,
-    AimLock = false,
-    Prediction = 0.121,
-    AimLockKeybind = Enum.KeyCode.E
+getgenv().AimKey =  (  "t"  )  -- [ TOGGLE KEY: Toggles Silent Aim On And Off ]
+ 
+getgenv().Notifier = true
+ 
+getgenv().FOV_VISIBLE = false  -- [ Self Explanatory ]
+ 
+getgenv().DontShootThesePeople = {  -- [ WHITELIST TABLE: List Of Who NOT To Shoot, edit like this. "Contain quotations with their name and then a semi-colon afterwards for each line" ; ]
+ 
+	"AimLockPsycho";
+	"JakeTheMiddleMan";
+ 
 }
-getgenv().DaHoodSettings = DaHoodSettings
  
--- // Overwrite to account downed
-function Aiming.Check()
-    -- // Check A
-    if not (Aiming.Enabled == true and Aiming.Selected ~= LocalPlayer and Aiming.SelectedPart ~= nil) then
-        return false
-    end
+--[[
+		Do Not Edit Anything Beyond This Point. 
+]]
  
-    -- // Check if downed
-    local Character = Aiming.Character(Aiming.Selected)
-    local KOd = Character:WaitForChild("BodyEffects")["K.O"].Value
-    local Grabbed = Character:FindFirstChild("GRABBING_CONSTRAINT") ~= nil
- 
-    -- // Check B
-    if (KOd or Grabbed) then
-        return false
-    end
- 
-    -- //
-    return true
+local SilentAim = true
+local LocalPlayer = game:GetService("Players").LocalPlayer
+local Players = game:GetService("Players")
+local Mouse = LocalPlayer:GetMouse()
+local Camera = game:GetService("Workspace").CurrentCamera
+local connections = getconnections(game:GetService("LogService").MessageOut)
+for _, v in ipairs(connections) do
+	v:Disable()
 end
  
--- // Hook
-local __index
-__index = hookmetamethod(game, "__index", function(t, k)
-    -- // Check if it trying to get our mouse's hit or target and see if we can use it
-    if (t:IsA("Mouse") and (k == "Hit" or k == "Target") and Aiming.Check()) then
-        -- // Vars
-        local SelectedPart = Aiming.SelectedPart
+getrawmetatable = getrawmetatable
+setreadonly = setreadonly
+getconnections = getconnections
+hookmetamethod = hookmetamethod
+getgenv = getgenv
+Drawing = Drawing
  
-        -- // Hit/Target
-        if (DaHoodSettings.SilentAim and (k == "Hit" or k == "Target")) then
-            -- // Hit to account prediction
-            local Hit = SelectedPart.CFrame + (SelectedPart.Velocity * DaHoodSettings.Prediction)
+local FOV_CIRCLE = Drawing.new("Circle")
+FOV_CIRCLE.Visible = getgenv().FOV_VISIBLE
+FOV_CIRCLE.Filled = false
+FOV_CIRCLE.Thickness = 1
+FOV_CIRCLE.Transparency = 1
+FOV_CIRCLE.Color = Color3.new(0, 1, 0)
+FOV_CIRCLE.Radius = getgenv().FOV
+FOV_CIRCLE.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
  
-            -- // Return modded val
-            return (k == "Hit" and Hit or SelectedPart)
-        end
-    end
+local Options = {
+	Torso = "HumanoidRootPart";
+	Head = "Head";
+}
  
-    -- // Return
-    return __index(t, k)
+local function MoveFovCircle()
+	pcall(function()
+		local DoIt = true
+		spawn(function()
+			while DoIt do task.wait()
+				FOV_CIRCLE.Position = Vector2.new(Mouse.X, (Mouse.Y + 36))
+			end
+		end)
+	end)
+end coroutine.wrap(MoveFovCircle)()
+ 
+game.StarterGui:SetCore("SendNotification", {Title = "Silent Aim ON", Text = "quiet.cc", Duration = 5,}) -- initially on.
+ 
+local function ItsOn()
+	game.StarterGui:SetCore("SendNotification", {Title = "Silent Aim ON", Text = "quiet.cc", Duration = 5,})
+end
+local function ItsOff()
+	game.StarterGui:SetCore("SendNotification", {Title = "Silent Aim OFF", Text = "quiet.cc", Duration = 5,})
+end
+ 
+Mouse.KeyDown:Connect(function(KeyPressed)
+	if KeyPressed == (getgenv().AimKey:lower()) then
+		if SilentAim == false then
+			FOV_CIRCLE.Color = Color3.new(0, 1, 0)
+			SilentAim = true
+			ItsOn()
+		elseif SilentAim == true then
+			FOV_CIRCLE.Color = Color3.new(1, 0, 0)
+			SilentAim = false
+			ItsOff()
+		end
+	end
+end)
+Mouse.KeyDown:Connect(function(Rejoin)
+	if Rejoin == "=" then
+		local LocalPlayer = game:GetService("Players").LocalPlayer
+		game:GetService("TeleportService"):Teleport(game.PlaceId, LocalPlayer)
+	end
 end)
  
-local player = game.Players.LocalPlayer
-local mouse = player:GetMouse()
+local oldIndex = nil 
+oldIndex = hookmetamethod(game, "__index", function(self, Index)
+	if self == Mouse and (Index == "Hit") then 
+		if SilentAim then
+			local Distance = 9e9
+			local Target = nil
+			local Players = game:GetService("Players")
+			local LocalPlayer = game:GetService("Players").LocalPlayer
+			local Camera = game:GetService("Workspace").CurrentCamera
+			for _, v in pairs(Players:GetPlayers()) do 
+				if not table.find(getgenv().DontShootThesePeople, v.Name) then
+					if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("Humanoid") and v.Character:FindFirstChild("Humanoid").Health > 0 then
+						local Enemy = v.Character	
+						local CastingFrom = CFrame.new(Camera.CFrame.Position, Enemy[Options.Torso].CFrame.Position) * CFrame.new(0, 0, -4)
+						local RayCast = Ray.new(CastingFrom.Position, CastingFrom.LookVector * 9000)
+						local World, ToSpace = game:GetService("Workspace"):FindPartOnRayWithIgnoreList(RayCast, {LocalPlayer.Character:FindFirstChild("Head")})
+						local RootWorld = (Enemy[Options.Torso].CFrame.Position - ToSpace).magnitude
+						if RootWorld < 4 then		
+							local RootPartPosition, Visible = Camera:WorldToScreenPoint(Enemy[Options.Torso].Position)
+							if Visible then
+								local Real_Magnitude = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(RootPartPosition.X, RootPartPosition.Y)).Magnitude
+								if Real_Magnitude < Distance and Real_Magnitude < FOV_CIRCLE.Radius then
+									Distance = Real_Magnitude
+									Target = Enemy
+								end
+							end
+						end
+					end
+				end
+			end
  
-mouse.KeyDown:Connect(function(key)
-    if key == "v" then
-        if Aiming.Enabled == false then
-        Aiming.Enabled = true
-        else
-        Aiming.Enabled = false
-        end
-    end
-end)
- 
- 
-RunService.RenderStepped:Connect(function()
- 
-    local ping = game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValueString()
-    local Value = tostring(ping)
-    local pingValue = Value:split(" ")
-    local PingNumber = pingValue[1]
- 
-    DaHoodSettings.Prediction = PingNumber / 1000 + _G.PRED
- 
-                    if Aiming.Character.Humanoid.Jump == true and AimlockTarget.Character.Humanoid.FloorMaterial == Enum.Material.Air then
-                    Aiming.TargetPart = "RightFoot"
-                else
-                    Aiming.Character:WaitForChild("Humanoid").StateChanged:Connect(function(new)
- 
-                    if new == Enum.HumanoidStateType.Freefall then
-                    Aiming.TargetPart = "RightFoot"
-                    else
- 
-                    Aiming.TargetPart = Aiming.SelectedPart
- 
-                    end
- 
-                    end)
- 
-                end
- 
+			if Target ~= nil and Target[Options.Torso] and Target:FindFirstChild("Humanoid").Health > 0 then
+				if SilentAim then
+					local ShootThis = Target[Options.Torso]
+					local Predicted_Position = ShootThis.CFrame + (ShootThis.Velocity * getgenv().Prediction + Vector3.new(0,-.5,0))
+					return ((Index == "Hit" and Predicted_Position))
+				end
+			end
+		end
+	end
+	return oldIndex(self, Index)
 end)
 
 game.StarterGui:SetCore("SendNotification",  {
