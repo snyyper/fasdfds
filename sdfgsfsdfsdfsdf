@@ -250,7 +250,7 @@ Uis.InputBegan:Connect(
                     game.StarterGui:SetCore(
                         "SendNotification",
                         {
-                            Title = "quiet.cc",
+                            Title = "envy",
                             Text = "Disabled UnderGround Resolver",
                             Icon = "rbxassetid://12688865242",
                             Duration = 1
@@ -263,7 +263,7 @@ Uis.InputBegan:Connect(
                     game.StarterGui:SetCore(
                         "SendNotification",
                         {
-                            Title = "quiet.cc",
+                            Title = "envy",
                             Text = "Enabled UnderGround Resolver",
                             Icon = "rbxassetid://12688865242",
                             Duration = 1
@@ -287,7 +287,7 @@ Uis.InputBegan:Connect(
                     game.StarterGui:SetCore(
                         "SendNotification",
                         {
-                            Title = "quiet.cc",
+                            Title = "envy",
                             Text = "Disabled Desync Resolver",
                             Icon = "rbxassetid://12688865242",
                             Duration = 1
@@ -300,7 +300,7 @@ Uis.InputBegan:Connect(
                     game.StarterGui:SetCore(
                         "SendNotification",
                         {
-                            Title = "quiet.cc",
+                            Title = "envy",
                             Text = "Enabled Desync Resolver",
                             Icon = "rbxassetid://12688865242",
                             Duration = 1
